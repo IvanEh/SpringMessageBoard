@@ -1,0 +1,50 @@
+<html>
+<head>
+    <title>Message Board</title>
+
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css"/>
+    <link rel="stylesheet" href="css/master.css"/>
+
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/jquery-dateFormat/dist/jquery-dateFormat.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-offset-4 col-md-4">
+            <form>
+                <div class="form-group">
+                    <label>Message: </label>
+                    <textarea class="form-control" rows="2" id="msg-text" required></textarea>
+                </div>
+
+                <div id="sendMessageBtn" class="btn btn-default pull-right">Submit</div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <hr class="col-md-offset-4 col-md-4"/>
+    </div>
+
+    <div id="messages">
+
+    <div class="row " id="msg-template" style="display: none">
+        <div class="col-md-offset-4 col-md-4">
+
+        <div class="panel panel-default">
+            <div class="message panel-body"> </div>
+            <div class="panel-footer message-time"></div>
+        </div>
+
+        </div>
+    </div>
+
+    </div>
+</div>
+
+<script src="js/master.js"></script>
+
+</body>
+</html>
