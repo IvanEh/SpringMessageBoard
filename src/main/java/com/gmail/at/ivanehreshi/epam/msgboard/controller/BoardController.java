@@ -12,18 +12,20 @@ import java.net.URI;
 import java.util.Collection;
 
 @RestController
-@RequestMapping(path = "/messages", consumes = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/messages",
+                consumes = MediaType.APPLICATION_JSON_VALUE,
+                produces = MediaType.APPLICATION_JSON_VALUE)
 @CrossOrigin(origins = "*")
 public class BoardController {
     @Autowired
     private BoardRepository boardRepository;
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping
     public ResponseEntity<Collection<BoardMessage>> allMessages() {
         return ResponseEntity.ok(boardRepository.getAllMessages());
     }
 
-    @GetMapping(value = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "{id}")
     public BoardMessage getMessage(@PathVariable Long id) {
         return boardRepository.getMessage(id);
     }
