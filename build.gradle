@@ -22,6 +22,7 @@ repositories {
 
 dependencies {
     compile 'org.springframework:spring-webmvc:4.3.3.RELEASE'
+    compile 'org.springframework:spring-websocket:4.3.3.RELEASE'
     compile 'javax.servlet:javax.servlet-api:3.1.0'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.8.4'
     tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
