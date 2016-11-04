@@ -1,18 +1,42 @@
-var msgUrl = 'http://127.1:8080/SpringTask1/messages';
+var msgUrl = 'http://localhost:8080/SpringTask1/messages';
+var sockUrl = 'http://localhost:8080/SpringTask1/sampleSock?username=';
 
 var msgSelector = '.message';
 var timeSelector = '.message-time';
 var $msgTemplate = $('#msg-template').clone();
 var $messages = $("#messages");
+var $onlineCounter = $('#online-counter');
 
 $msgTemplate.removeAttr('id');
 $msgTemplate.removeAttr('style');
 
 $(function() {
+ var onlineCount = 0;
+ var sock = new SockJS(sockUrl + getQueryParam('username'));
+
  fetchAllMessages();
+
  $('#sendMessageBtn').click(function() {
     sendMessage();
  });
+
+
+ var handlers = {
+    "online": function(msg) { onlineCount = msg; updateOnlineCounterUi(); },
+    "logged": function(msg) { onlineCount++; updateOnlineCounterUi(); },
+    "signout": function(msg) { onlineCount--; updateOnlineCounterUi(); }
+ };
+
+ sock.onmessage= function(e) {
+    var msgs = JSON.parse(e.data);
+
+    Object.keys(msgs).forEach(function(msgType) {handlers[msgType](msgs[msgType])});
+ }
+
+ function updateOnlineCounterUi() {
+    $onlineCounter.html(onlineCount);
+ }
+
 })
 
 function ajaxMessages() {
@@ -64,4 +88,13 @@ function addMessage(msg) {
 function getDateFromTimestamp(timestamp) {
     var date = new Date(timestamp*1000);
     return $.format.date(date, 'dd-MM-yy HH:mm');
+}
+
+function getQueryParam(param) {
+    location.search.substr(1)
+        .split("&")
+        .some(function(item) { // returns first occurence and stops
+            return item.split("=")[0] == param && (param = item.split("=")[1])
+        })
+    return param
 }
