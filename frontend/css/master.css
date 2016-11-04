@@ -4,3 +4,18 @@
     height: 30px;
     padding: 5px;
 }
+
+#notification-bubble {
+    position: fixed;
+
+    width: 25%;
+    height: 40px;
+    right: -25%;
+    bottom: 40px;
+
+    transition: right 0.5s;
+}
+
+#notification-message {
+    padding: 10px;
+}

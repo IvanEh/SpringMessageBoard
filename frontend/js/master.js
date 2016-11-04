@@ -6,6 +6,8 @@ var timeSelector = '.message-time';
 var $msgTemplate = $('#msg-template').clone();
 var $messages = $("#messages");
 var $onlineCounter = $('#online-counter');
+var $notifBubble = $('#notification-bubble');
+var $notifMessage = $('#notification-message');
 
 $msgTemplate.removeAttr('id');
 $msgTemplate.removeAttr('style');
@@ -13,6 +15,9 @@ $msgTemplate.removeAttr('style');
 $(function() {
  var onlineCount = 0;
  var sock = new SockJS(sockUrl + getQueryParam('username'));
+ var notif = false;
+ var notifTime = 0;
+ var notifDuration = 8000;
 
  fetchAllMessages();
 
@@ -23,7 +28,7 @@ $(function() {
 
  var handlers = {
     "online": function(msg) { onlineCount = msg; updateOnlineCounterUi(); },
-    "logged": function(msg) { onlineCount++; updateOnlineCounterUi(); },
+    "logged": function(msg) { onlineCount++; updateOnlineCounterUi(); pushLoggedInNotification(msg); },
     "signout": function(msg) { onlineCount--; updateOnlineCounterUi(); }
  };
 
@@ -35,6 +40,35 @@ $(function() {
 
  function updateOnlineCounterUi() {
     $onlineCounter.html(onlineCount);
+ }
+
+ function pushLoggedInNotification(user) {
+    var msg = 'User <mark>' + user + '</mark> has logged in';
+    pushNotification(msg);
+ }
+
+ function pushNotification(msg) {
+    if(notif == true) {
+        $notifMessage.fadeOut(250);
+        $notifMessage.html(msg);
+        $notifMessage.fadeIn(250);
+    } else {
+        $notifBubble.css('right', '2%');
+        $notifMessage.html(msg);
+    }
+    notif = true;
+    notifTime += notifDuration;
+
+    (function scheduleNotificationHiding(duration) {
+        setTimeout(function() {
+            $notifBubble.css('right', '-25%');
+            notif = false;
+            notifTime -= duration;
+            if(notifTime > 0) {
+                scheduleNotificationHiding(notifTime);
+            }
+        }, notifTime)
+    })(notifTime);
  }
 
 })
