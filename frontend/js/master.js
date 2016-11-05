@@ -1,5 +1,5 @@
-var msgUrl = 'http://localhost:8080/SpringTask1/messages';
-var sockUrl = 'http://localhost:8080/SpringTask1/sampleSock?username=';
+var msgUrl = 'http://localhost:8080/SpringMessageBoard/messages';
+var sockUrl = 'http://localhost:8080/SpringMessageBoard/sampleSock?username=';
 
 var msgSelector = '.message';
 var timeSelector = '.message-time';
