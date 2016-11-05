@@ -1,60 +1,75 @@
-var msgUrl = 'http://localhost:8080/SpringMessageBoard/messages';
-var sockUrl = 'http://localhost:8080/SpringMessageBoard/sampleSock?username=';
-
-var msgSelector = '.message';
-var timeSelector = '.message-time';
-var $msgTemplate = $('#msg-template').clone();
-var $messages = $("#messages");
-var $onlineCounter = $('#online-counter');
-var $notifBubble = $('#notification-bubble');
-var $notifMessage = $('#notification-message');
-var $loginModal = $('#login-modal');
-var $loginButton = $('#login-button')
-
-$msgTemplate.removeAttr('id');
-$msgTemplate.removeAttr('style');
-
 $(function() {
+// Configuration
+ var msgUrl = 'http://localhost:8080/SpringMessageBoard/messages';
+ var sockUrl = 'http://localhost:8080/SpringMessageBoard/sampleSock?username=';
+ var notifDuration = 8000;
+ var msgSelector = '.message';
+ var timeSelector = '.message-time';
+
+// Cached DOM
+ var $msgTemplate = $('#msg-template').clone();
+ var $messages = $("#messages");
+ var $onlineCounter = $('#online-counter');
+ var $notifBubble = $('#notification-bubble');
+ var $notifMessage = $('#notification-message');
+ var $loginModal = $('#login-modal');
+ var $loginButton = $('#login-button');
+
+// Page state
  var onlineCount = 0;
- var sock;
  var notif = false;
  var notifTime = 0;
- var notifDuration = 8000;
 
- fetchAllMessages();
+// Logic
+ $msgTemplate.removeAttr('id');
+ $msgTemplate.removeAttr('style');
 
- $loginModal.modal('show');
- $loginButton.click(function() {
-    $loginModal.modal('hide');
-    initNotificationService($('#username').val());
- });
-//initNotificationService();
+ uiFetchAllMessages();
 
+ uiLoginForm().then(initSocketNotificationService);
 
- function initNotificationService(username) {
-     sock = new SockJS(sockUrl + username);
+// Functions
+ function uiFetchAllMessages() {
+    ajaxFetchAllMessages()
+      .done(function(msgs) {
+        msgs.forEach(addMessage);
+      });
+ }
+
+ function uiLoginForm() {
+    return {
+        then: function(cb) {
+             $loginModal.modal('show');
+
+             $loginButton.click(function() {
+                $loginModal.modal('hide');
+                cb($('#username').val());
+             });
+        }
+    }
+ }
+
+ function initSocketNotificationService(username) {
+     var sock = new SockJS(sockUrl + username);
 
      $('#sendMessageBtn').click(function() {
         sendMessage();
      });
 
-
-     var handlers = {
-        "online": function(msg) { onlineCount = msg; updateOnlineCounterUi(); },
-        "logged": function(msg) { onlineCount++; updateOnlineCounterUi(); pushLoggedInNotification(msg); },
-        "signout": function(msg) { onlineCount--; updateOnlineCounterUi(); }
+     var messageHandlers = {
+        "online":  function(msg) { onlineCount = msg; uiUpdateOnlineCounter(); },
+        "logged":  function(msg) { onlineCount++; uiUpdateOnlineCounter(); pushLoggedInNotification(msg); },
+        "signout": function(msg) { onlineCount--; uiUpdateOnlineCounter(); }
      };
 
      sock.onmessage= function(e) {
         var msgs = JSON.parse(e.data);
 
-        Object.keys(msgs).forEach(function(msgType) {console.log(msgType); console.log(msgs[msgType]); handlers[msgType](msgs[msgType])});
+        Object.keys(msgs).forEach(function(msgType) { messageHandlers[msgType](msgs[msgType]) });
      }
-
-
  }
 
- function updateOnlineCounterUi() {
+ function uiUpdateOnlineCounter() {
     $onlineCounter.html(onlineCount);
  }
 
@@ -87,64 +102,40 @@ $(function() {
     })(notifTime);
  }
 
-})
-
-function ajaxMessages() {
+ function ajaxFetchAllMessages() {
     return $.ajax({
         url: msgUrl,
         method: 'GET',
         contentType: 'application/json',
     });
-}
+ }
 
-function ajaxMessage(id) {
-   return $.ajax({
-        url: msgUrl + '/' + id,
-        method: 'GET',
-        contentType: 'application/json',
-    });
-}
-
-function sendMessage() {
+ function sendMessage() {
     var msg = $('#msg-text').val();
 
-    console.log(msg);
+    ajaxSendMessage(msg).done(function(data) {
+        addMessage(data);
+    });
+ }
 
-    $.ajax({
+ function ajaxSendMessage(msg) {
+     return $.ajax({
         url: msgUrl,
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({text: msg})
-    }).done(function(data) {
-        addMessage(data);
     });
+ }
 
-}
-
-function fetchAllMessages() {
-    ajaxMessages()
-      .done(function(msgs) {
-        msgs.forEach(addMessage);
-      });
-}
-
-function addMessage(msg) {
+ function addMessage(msg) {
     $msg = $msgTemplate.clone();
     $msg.find(msgSelector).html(msg.text);
     $messages.prepend($msg);
     $msg.find(timeSelector).html(getDateFromTimestamp(msg.timestamp.epochSecond));
-}
+ }
 
-function getDateFromTimestamp(timestamp) {
+ function getDateFromTimestamp(timestamp) {
     var date = new Date(timestamp*1000);
     return $.format.date(date, 'dd-MM-yy HH:mm');
-}
-
-function getQueryParam(param) {
-    location.search.substr(1)
-        .split("&")
-        .some(function(item) { // returns first occurence and stops
-            return item.split("=")[0] == param && (param = item.split("=")[1])
-        })
-    return param
-}
+ }
+});
