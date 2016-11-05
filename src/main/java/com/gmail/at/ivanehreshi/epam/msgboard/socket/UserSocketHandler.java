@@ -24,9 +24,13 @@ public class UserSocketHandler extends TextWebSocketHandler {
         UriComponents uri = UriComponentsBuilder.fromUri(session.getUri()).build();
         String username = uri.getQueryParams().getFirst("username");
 
-        System.out.println(username);
+        if (socketMap.containsKey(username)) {
+            session.sendMessage(new TextMessage(usersOnlineMessage(socketMap.size())));
+            return;
+        }
 
         session.sendMessage(new TextMessage(usersOnlineMessage(socketMap.size() + 1)));
+
 
         for (WebSocketSession socket: socketMap.values()) {
             socket.sendMessage(new TextMessage(loggedMessage(username)));
