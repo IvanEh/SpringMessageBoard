@@ -8,34 +8,50 @@ var $messages = $("#messages");
 var $onlineCounter = $('#online-counter');
 var $notifBubble = $('#notification-bubble');
 var $notifMessage = $('#notification-message');
+var $loginModal = $('#login-modal');
+var $loginButton = $('#login-button')
 
 $msgTemplate.removeAttr('id');
 $msgTemplate.removeAttr('style');
 
 $(function() {
  var onlineCount = 0;
- var sock = new SockJS(sockUrl + getQueryParam('username'));
+ var sock;
  var notif = false;
  var notifTime = 0;
  var notifDuration = 8000;
 
  fetchAllMessages();
 
- $('#sendMessageBtn').click(function() {
-    sendMessage();
+ $loginModal.modal('show');
+ $loginButton.click(function() {
+    $loginModal.modal('hide');
+    initNotificationService($('#username').val());
  });
+//initNotificationService();
 
 
- var handlers = {
-    "online": function(msg) { onlineCount = msg; updateOnlineCounterUi(); },
-    "logged": function(msg) { onlineCount++; updateOnlineCounterUi(); pushLoggedInNotification(msg); },
-    "signout": function(msg) { onlineCount--; updateOnlineCounterUi(); }
- };
+ function initNotificationService(username) {
+     sock = new SockJS(sockUrl + username);
 
- sock.onmessage= function(e) {
-    var msgs = JSON.parse(e.data);
+     $('#sendMessageBtn').click(function() {
+        sendMessage();
+     });
 
-    Object.keys(msgs).forEach(function(msgType) {handlers[msgType](msgs[msgType])});
+
+     var handlers = {
+        "online": function(msg) { onlineCount = msg; updateOnlineCounterUi(); },
+        "logged": function(msg) { onlineCount++; updateOnlineCounterUi(); pushLoggedInNotification(msg); },
+        "signout": function(msg) { onlineCount--; updateOnlineCounterUi(); }
+     };
+
+     sock.onmessage= function(e) {
+        var msgs = JSON.parse(e.data);
+
+        Object.keys(msgs).forEach(function(msgType) {console.log(msgType); console.log(msgs[msgType]); handlers[msgType](msgs[msgType])});
+     }
+
+
  }
 
  function updateOnlineCounterUi() {
